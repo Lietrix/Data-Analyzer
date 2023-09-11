@@ -1,25 +1,57 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+using namespace std;
 
 int main() {
-    std::string fileName;
-    std::cout << "Enter the name of the file to read: ";
-    std::cin >> fileName;
+    string fileName;
+    cout << "Enter the name of the file to read: ";
+    cin >> fileName;
 
-    std::ifstream inFile(fileName);  // Open the file for reading
+    ifstream inFile(fileName);  // Open the file for reading
 
     if (!inFile) {  // Check if the file was opened successfully
-        std::cerr << "Failed to open " << fileName << std::endl;
+        cerr << "Failed to open " << fileName << endl;
         return 1;  // Exit with an error code
     }
+    
+    vector<int> ccData;
+    vector<int> yearData;
 
-    std::string line;
-    while (std::getline(inFile, line)) {  // Read the file line by line
-        std::cout << line << std::endl;   // Display each line
+    int cc, kya;
+    while (inFile >> cc >> kya) {  
+        ccData.push_back(cc);
+        yearData.push_back(kya);
     }
+
+
+    if(!ccData.empty()){
+        // Largest CC 
+        int largest_cc = ccData[0];
+        int index = 0;
+        for (int i = 1; i < ccData.size(); i ++) {
+            if (ccData[i] > largest_cc) {
+                largest_cc = ccData[i];
+                index = i;
+            }
+        }
+        cout << "Largest CC: " << largest_cc << endl;
+        cout << "Kya: " << yearData[index] << endl;
+
+        // Mean CC
+        double meanCC;
+        for (int i = 0;)
+
+    }
+    else {
+        cout << "No data found." << endl;
+    }
+
+
+    
 
     inFile.close();  // Close the file
 
-    return 0;  // Exit successfully
+    return 0;  
 }
