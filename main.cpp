@@ -41,15 +41,17 @@ int main() {
 
         // Mean CC
         double meanCC;
-        for (int i = 0;)
+        double totalCC;
+        for (int i = 0; i < ccData.size(); i++) {
+            totalCC += ccData[i];
+        }
+        meanCC = totalCC /  static_cast<double>(ccData.size());
+        cout << "Mean CC: " << meanCC << endl;
 
     }
     else {
         cout << "No data found." << endl;
     }
-
-
-    
 
     inFile.close();  // Close the file
 
