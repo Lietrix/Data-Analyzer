@@ -4,60 +4,38 @@
 #include <vector>
 #include <cmath>
 #include <utility>
+#include <algorithm>  // For the min_element function
 using namespace std;
 
 // Function prototypes
 bool readFile(const string &fileName, vector<int> &ccData, vector<int> &yearData);
-void findLargestCC(const vector<int> &ccData, const vector<int> &yearData, int &largestCC, int &correspondingYear);
+void seperateYears(const vector<int> &ccData, const vector<int> &yearData, vector<pair<int, vector<int>>> &yearIntervals);
+void findLargestCC(const vector<int> &ccData, int &largestCC);
+void findSmallestCC(const vector<int> &ccData, int &smallestCC);
 double calculateMean(const vector<int> &ccData);
 double calculateStdDev(const vector<int> &ccData, double mean);
 double calculateCV(double stdDeviation, double mean);
-void seperateYears(const vector<int> &yearData, vector<pair<int, int>> &yearIntervals);
+void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals);
 
 int main() {
     string fileName;
-    // Prompt user for file name
     cout << "Enter the name of the file to read: ";
     cin >> fileName;
 
     vector<int> ccData;  // Store CC values
     vector<int> yearData;  // Store corresponding years
-    vector<pair<int,int>> yearIntervals;  // Store year and its occurrence count
+    vector<pair<int, vector<int>>> yearIntervals;
 
-    // Read data from file
     if (!readFile(fileName, ccData, yearData)) {
-        return 1;  // Exit if file reading failed
+        return 1;
     }
 
-    // If data is not empty, process and display results
-    if(!ccData.empty()){
-        int largestCC, correspondingYear;
-        
-        // Find and display largest CC value and its corresponding year
-        findLargestCC(ccData, yearData, largestCC, correspondingYear);
-        cout << "Largest CC: " << largestCC << endl;
-        cout << "Kya: " << correspondingYear << endl;
-
-        // Calculate and display mean CC
-        double meanCC = calculateMean(ccData);
-        cout << "Mean CC: " << meanCC << endl;
-
-        // Calculate and display standard deviation of CC
-        double stdDeviation = calculateStdDev(ccData, meanCC);
-        cout << "Standard Deviation CC: " << stdDeviation << endl;
-
-        // Calculate and display coefficient of variation
-        double CV = calculateCV(stdDeviation, meanCC);
-        cout << "Coefficient of Variation (CV): " << CV << "%" << endl;
-    }
-    else {
-        cout << "No data found." << endl;
-    }
+    seperateYears(ccData, yearData, yearIntervals);
+    displayStatsForYearIntervals(yearIntervals);
 
     return 0;  
 }
 
-// Read data from file and store in provided vectors
 bool readFile(const string &fileName, vector<int> &ccData, vector<int> &yearData) {
     ifstream inFile(fileName);  
     if (!inFile) {
@@ -66,7 +44,6 @@ bool readFile(const string &fileName, vector<int> &ccData, vector<int> &yearData
     }
 
     int cc, kya;
-    // Read CC and year data pairs from file
     while (inFile >> cc >> kya) {
         ccData.push_back(cc);
         yearData.push_back(kya);
@@ -75,20 +52,44 @@ bool readFile(const string &fileName, vector<int> &ccData, vector<int> &yearData
     return true;
 }
 
-// Find the largest CC value and its corresponding year
-void findLargestCC(const vector<int> &ccData, const vector<int> &yearData, int &largestCC, int &correspondingYear) {
-    largestCC = ccData[0];
-    int index = 0;
-    for (int i = 1; i < ccData.size(); i ++) {
-        if (ccData[i] > largestCC) {
-            largestCC = ccData[i];
-            index = i;
+void seperateYears(const vector<int> &ccData, const vector<int> &yearData, vector<pair<int, vector<int>>> &yearIntervals) {
+    if(yearData.empty() || ccData.empty() || yearData.size() != ccData.size()) {
+        return;
+    }
+
+    int currentYear = yearData[0];
+    vector<int> currentYearCCs = {ccData[0]};
+
+    for (int i = 1; i < yearData.size(); i++) {
+        if(yearData[i] == currentYear) {
+            currentYearCCs.push_back(ccData[i]);
+        } else {
+            yearIntervals.push_back({currentYear, currentYearCCs});
+            currentYear = yearData[i];
+            currentYearCCs = {ccData[i]};
         }
     }
-    correspondingYear = yearData[index];
+    yearIntervals.push_back({currentYear, currentYearCCs});
 }
 
-// Calculate the mean of the CC values
+void findLargestCC(const vector<int> &ccData, int &largestCC) {
+    largestCC = ccData[0];
+    for (int i = 1; i < ccData.size(); i++) {
+        if (ccData[i] > largestCC) {
+            largestCC = ccData[i];
+        }
+    }
+}
+
+void findSmallestCC(const vector<int> &ccData, int &smallestCC) {
+    smallestCC = ccData[0];
+    for (int i = 1; i < ccData.size(); i++) {
+        if (ccData[i] < smallestCC) {
+            smallestCC = ccData[i];
+        }
+    }
+}
+
 double calculateMean(const vector<int> &ccData) {
     double totalCC = 0;
     for (int i = 0; i < ccData.size(); i++) {
@@ -97,7 +98,6 @@ double calculateMean(const vector<int> &ccData) {
     return totalCC / static_cast<double>(ccData.size());
 }
 
-// Calculate the standard deviation of the CC values
 double calculateStdDev(const vector<int> &ccData, double mean) {
     double variance = 0.0;
     for (int i = 0; i < ccData.size(); i++) {
@@ -107,28 +107,32 @@ double calculateStdDev(const vector<int> &ccData, double mean) {
     return sqrt(variance);
 }
 
-// Calculate the coefficient of variation
 double calculateCV(double stdDeviation, double mean) {
     return (stdDeviation / mean) * 100.0;
 }
 
-// Separate years and count occurrences
-void seperateYears(const vector<int> &yearData, vector<pair<int, int>> &yearIntervals) {
-    if(yearData.empty()) {
-        return;
-    }
+void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals) {
+    for (const auto &interval : yearIntervals) {
+        int year = interval.first;
+        const vector<int>& ccValues = interval.second;
 
-    int currentYear = yearData[0];
-    int count = 1;
+        double meanCC = calculateMean(ccValues);
+        cout << "Year: " << year << endl << "Mean CC: " << meanCC << endl;
 
-    for (int i = 1; i < yearData.size(); i++) {
-        if(yearData[i] == currentYear) {
-            count++;
-        } else {
-            yearIntervals.push_back({currentYear, count});
-            currentYear = yearData[i];
-            count = 1;
-        }
+        double stdDev = calculateStdDev(ccValues, meanCC);
+        cout << "Standard Deviation CC: " << stdDev << endl;
+
+        double CV = calculateCV(stdDev, meanCC);
+        cout << "Coefficient of Variation (CV): " << CV << "%" << endl;
+
+        int largest;
+        findLargestCC(ccValues, largest);
+        cout << "Largest CC: " << largest << endl;
+
+        int smallest;
+        findSmallestCC(ccValues, smallest);
+        cout << "Smallest CC: " << smallest << endl;
+
+        cout << "----------------------------" << endl;
     }
-    yearIntervals.push_back({currentYear, count});
 }
