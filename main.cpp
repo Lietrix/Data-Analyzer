@@ -15,23 +15,49 @@ void findSmallestCC(const vector<int> &ccData, int &smallestCC);
 double calculateMean(const vector<int> &ccData);
 double calculateStdDev(const vector<int> &ccData, double mean);
 double calculateCV(double stdDeviation, double mean);
-void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals);
+void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals, const string &writeFileName);
+void writeIntervalComparison(const vector<pair<int, vector<int>>> &group1, 
+                             const vector<pair<int, vector<int>>> &group2, 
+                             ofstream &outFile);
 
 int main() {
-    string fileName;
+    string readName, writeName;
     cout << "Enter the name of the file to read: ";
-    cin >> fileName;
+    cin >> readName;
+    cout << endl << "Enter the name of the file to write to: ";
+    cin >> writeName;
 
     vector<int> ccData;  // Store CC values
     vector<int> yearData;  // Store corresponding years
     vector<pair<int, vector<int>>> yearIntervals;
 
-    if (!readFile(fileName, ccData, yearData)) {
+    if (!readFile(readName, ccData, yearData)) {
         return 1;
     }
 
     seperateYears(ccData, yearData, yearIntervals);
-    displayStatsForYearIntervals(yearIntervals);
+
+    ofstream outFile(writeName);
+    if (!outFile) {
+        cerr << "Failed to open " << writeName << " for writing." << endl;
+        return 1;
+    }
+
+    // Optional: Write header to the file
+    outFile << "Subset1 Years, n, Mean, StdDev, CV, Max, Min, Subset2 Years, n, Mean, StdDev, CV, Max, Min\n";
+
+    for (int i = 0; i < yearIntervals.size(); ++i) {
+        vector<pair<int, vector<int>>> group1(yearIntervals.begin(), yearIntervals.begin() + i + 1);
+        vector<pair<int, vector<int>>> group2(yearIntervals.begin() + i + 1, yearIntervals.end());
+        
+        if (!group2.empty()) {
+            writeIntervalComparison(group1, group2, outFile);
+        }
+    }
+
+    outFile.close();
+    //write complete, no errors!
+    cout << "Data written to " << writeName;
 
     return 0;  
 }
@@ -111,28 +137,65 @@ double calculateCV(double stdDeviation, double mean) {
     return (stdDeviation / mean) * 100.0;
 }
 
-void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals) {
+void displayStatsForYearIntervals(const vector<pair<int, vector<int>>> &yearIntervals, const string &writeFileName) {
+    ofstream outFile(writeFileName);
+    if (!outFile) {
+        cerr << "Failed to open " << writeFileName << " for writing." << endl;
+        return;
+    }
+
+    // Optional: write header row
+    outFile << "Year, n, Mean, StdDev, CV, Max, Min\n";
+
     for (const auto &interval : yearIntervals) {
         int year = interval.first;
         const vector<int>& ccValues = interval.second;
 
         double meanCC = calculateMean(ccValues);
-        cout << "Year: " << year << endl << "Mean CC: " << meanCC << endl;
-
         double stdDev = calculateStdDev(ccValues, meanCC);
-        cout << "Standard Deviation CC: " << stdDev << endl;
-
         double CV = calculateCV(stdDev, meanCC);
-        cout << "Coefficient of Variation (CV): " << CV << "%" << endl;
 
         int largest;
         findLargestCC(ccValues, largest);
-        cout << "Largest CC: " << largest << endl;
-
         int smallest;
         findSmallestCC(ccValues, smallest);
-        cout << "Smallest CC: " << smallest << endl;
 
-        cout << "----------------------------" << endl;
+        outFile << year << ", " << ccValues.size() << ", " << meanCC << ", " 
+                << stdDev << ", " << CV << ", " << largest << ", " << smallest << "\n";
     }
+
+    outFile.close();
+    cout << "Statistics written to " << writeFileName << endl;
+}
+
+void writeIntervalComparison(const vector<pair<int, vector<int>>> &group1, 
+                             const vector<pair<int, vector<int>>> &group2, 
+                             ofstream &outFile) {
+    // Compute and write stats for group1
+    vector<int> combinedCC1;
+    int startYear1 = group1.front().first;
+    int endYear1 = group1.back().first;
+    for (const auto &interval : group1) {
+        combinedCC1.insert(combinedCC1.end(), interval.second.begin(), interval.second.end());
+    }
+    outFile << startYear1 << "-" << endYear1 << ", " << combinedCC1.size() 
+            << ", " << calculateMean(combinedCC1) << ", " 
+            << calculateStdDev(combinedCC1, calculateMean(combinedCC1)) << ", " 
+            << calculateCV(calculateStdDev(combinedCC1, calculateMean(combinedCC1)), calculateMean(combinedCC1)) << ", " 
+            << *max_element(combinedCC1.begin(), combinedCC1.end()) << ", " 
+            << *min_element(combinedCC1.begin(), combinedCC1.end()) << ", ";
+
+    // Compute and write stats for group2
+    vector<int> combinedCC2;
+    int startYear2 = group2.front().first;
+    int endYear2 = group2.back().first;
+    for (const auto &interval : group2) {
+        combinedCC2.insert(combinedCC2.end(), interval.second.begin(), interval.second.end());
+    }
+    outFile << startYear2 << "-" << endYear2 << ", " << combinedCC2.size() 
+            << ", " << calculateMean(combinedCC2) << ", " 
+            << calculateStdDev(combinedCC2, calculateMean(combinedCC2)) << ", " 
+            << calculateCV(calculateStdDev(combinedCC2, calculateMean(combinedCC2)), calculateMean(combinedCC2)) << ", " 
+            << *max_element(combinedCC2.begin(), combinedCC2.end()) << ", " 
+            << *min_element(combinedCC2.begin(), combinedCC2.end()) << "\n";
 }
