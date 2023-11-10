@@ -5,7 +5,7 @@ CCData::CCData() {
     this->cc = 0; 
 }
 
-CCData::CCData(double c, int y) {
+CCData::CCData(double c, double y) {
     this->year = y;
     this->cc = c;
 }

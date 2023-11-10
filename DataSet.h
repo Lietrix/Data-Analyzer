@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 #include <cmath>
 #include "CCData.h"
 
@@ -19,7 +20,12 @@ class DataSet {
 
     void addData(const CCData &data);
     const void printInfo();
+    const void printCSV(std::ofstream &ofile);
     void sortData();
+    const double getOldestTime() const;
+    const double getNewestTime() const;
+    std::vector<CCData> getDataSet() const; 
+    bool isEmpty();
     
  private:
 
@@ -27,8 +33,8 @@ class DataSet {
     std::vector<CCData> CCDataSet;
     const double largestCC();
     const double smallestCC();
-    const int oldestTime();
-    const int newestTime();
+    const double oldestTime() const;
+    const double newestTime() const;
     const double mean();
     const double stdDev();
     const double cv();

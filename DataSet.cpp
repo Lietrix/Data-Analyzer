@@ -1,5 +1,6 @@
 #include "DataSet.h"
 
+
 DataSet::DataSet() {
     // initiate empty Data Set
     this->title = "NO NAME";
@@ -18,12 +19,21 @@ void DataSet::addData(const CCData &data){
 }
 
 const void DataSet::printInfo(){
-    std::cout << "Set: " << this->title << std::endl;
+    //std::cout << "Set: " << this->title << std::endl;
     std::cout << "-------------------------------------" << std::endl;
-    std::cout << "Time in years ago: " << this->newestTime() << " - " << this->oldestTime() << std::endl;
+    std::cout << "Time Range(millions): " << this->newestTime() << " - " << this->oldestTime() << std::endl;
     std::cout << "CC Range: " << this->smallestCC() << " - " << this->largestCC() << std::endl;
     std::cout << "CV: " << this->cv() << std::endl;
-    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "-------------------------------------" << std::endl << std::endl;
+}
+
+const void DataSet::printCSV(std::ofstream &ofile) {
+    // Time Range
+    ofile << this->newestTime() << " - " << this->oldestTime() << ", ";
+    // CC Range
+    ofile << this->smallestCC() << " - " << this->largestCC() << ", ";
+    // CV
+    ofile << this->cv() << std::endl;
 }
 
 void DataSet::sortData() {
@@ -32,6 +42,22 @@ void DataSet::sortData() {
     });
 }
 
+
+const double DataSet::getOldestTime() const {
+    return oldestTime();
+}
+    
+const double DataSet::getNewestTime() const {
+    return newestTime();
+}
+
+std::vector<CCData> DataSet::getDataSet() const {
+    return CCDataSet;
+}
+
+bool DataSet::isEmpty() {
+    return CCDataSet.empty();
+}
 
 const double DataSet::largestCC() {
     double maxCC = 0;
@@ -57,8 +83,8 @@ const double DataSet::smallestCC(){
     return minCC;
 }
 
-const int DataSet::oldestTime() {
-    int oldestYear = 0;
+const double DataSet::oldestTime() const {
+    double oldestYear = 0;
     // This value should get overwritten
 
     for (const auto& data : CCDataSet) {
@@ -69,8 +95,8 @@ const int DataSet::oldestTime() {
     return oldestYear;
 }
 
-const int DataSet::newestTime() {
-    int newestYear = 10000000;
+const double DataSet::newestTime() const {
+    double newestYear = 100000;
     // This value should get overwritten
 
     for (const auto& data : CCDataSet) {
@@ -109,6 +135,7 @@ const double DataSet::stdDev() {
 }
 
 const double DataSet::cv() {
+    if (CCDataSet.size() == 1) return 0.0;
     double m = this->mean();
     return this->stdDev() / m;
 }

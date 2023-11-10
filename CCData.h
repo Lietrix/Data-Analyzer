@@ -4,15 +4,15 @@
 class CCData {
  public:
     //constructors
-    CCData(double cc, int year);
+    CCData(double cc, double year);
     CCData();
 
     //destructor
     ~CCData();
 
-    int year;
+    double year;
     double cc;
- 
+
  private:
 
 };
