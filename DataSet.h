@@ -4,7 +4,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <CCData.h>
+#include <algorithm>
+#include <cmath>
+#include "CCData.h"
 
 class DataSet {
  public:
@@ -17,13 +19,14 @@ class DataSet {
 
     void addData(const CCData &data);
     const void printInfo();
+    void sortData();
     
  private:
 
     std::string title;
     std::vector<CCData> CCDataSet;
-    const int largestCC();
-    const int smallestCC();
+    const double largestCC();
+    const double smallestCC();
     const int oldestTime();
     const int newestTime();
     const double mean();

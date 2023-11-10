@@ -1,4 +1,4 @@
-#include <DataSet.h>
+#include "DataSet.h"
 
 DataSet::DataSet() {
     // initiate empty Data Set
@@ -9,17 +9,32 @@ DataSet::DataSet(std::string name) {
     this->title = name;
 }
 
+ DataSet::~DataSet() {
+    //destructor
+ }
 
 void DataSet::addData(const CCData &data){
     this->CCDataSet.push_back(data);
 }
 
 const void DataSet::printInfo(){
-    
+    std::cout << "Set: " << this->title << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Time in years ago: " << this->newestTime() << " - " << this->oldestTime() << std::endl;
+    std::cout << "CC Range: " << this->smallestCC() << " - " << this->largestCC() << std::endl;
+    std::cout << "CV: " << this->cv() << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
 }
 
-const int DataSet::largestCC() {
-    int maxCC = 0;
+void DataSet::sortData() {
+    std::sort(CCDataSet.begin(), CCDataSet.end(), [](const CCData& a, const CCData& b) {
+        return a.year < b.year;
+    });
+}
+
+
+const double DataSet::largestCC() {
+    double maxCC = 0;
     // This value should get overwritten
 
     for (const auto& data : CCDataSet) {
@@ -30,7 +45,7 @@ const int DataSet::largestCC() {
     return maxCC;
 }
 
-const int DataSet::smallestCC(){
+const double DataSet::smallestCC(){
     int minCC = 10000;
     // This value should get overwritten
 
@@ -55,7 +70,7 @@ const int DataSet::oldestTime() {
 }
 
 const int DataSet::newestTime() {
-    int newestYear = 10000000000;
+    int newestYear = 10000000;
     // This value should get overwritten
 
     for (const auto& data : CCDataSet) {
